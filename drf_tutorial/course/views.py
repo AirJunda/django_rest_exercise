@@ -8,6 +8,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework import generics
 
+from rest_framework import viewsets
+
 
 # Create your views here.
 
@@ -82,4 +84,16 @@ class CourseDetail(APIView):
 
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+""" DRF viewset way to write same set of crud API views """
+class CourseViewSet(viewsets.ModelViewSet):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
+
+    # only need to overide this method as we definr our own rule for create logic
+    def perform_create(self, serializer):
+        serializer.save(teacher=self.request.user)
+
+
 
