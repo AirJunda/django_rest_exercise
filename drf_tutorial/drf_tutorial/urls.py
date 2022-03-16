@@ -21,12 +21,16 @@ from rest_framework.schemas import get_schema_view
 from rest_framework.documentation import include_docs_urls
 from course import views
 
+# for user api token
+from rest_framework.authtoken.views import obtain_auth_token
+
 router = DefaultRouter()
 router.register(prefix='viewsets', viewset=views.CourseViewSet)
 
 schema_view = get_schema_view(title='DRF API doc')
 
 urlpatterns = [
+    path('api-token-auth', obtain_auth_token),
     path('admin/', admin.site.urls), #DRF登录退出
     path('api-auth/', include('rest_framework.urls')),
     path('course/', include('course.urls')),

@@ -10,15 +10,34 @@ from rest_framework import generics
 
 from rest_framework import viewsets
 
+# 下面这些是信号机制生成token用到的
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
+
+# 权限相关
+from rest_framework.permissions import IsAuthenticated
+from course.permission import IsOwnerReadOnly
+
+@receiver(post_save, sender=User)  #django 信号机制
+def generate_token(sender, instance = None, created=False, **kwargs):
+    """
+    创建用户时自动生成token
+    :param sender:
+    :param instance:
+    :param created:
+    :param kwargs:
+    :return:
+    """
+    if created:
+        Token.objects.create(user=instance)
+
+
 
 # Create your views here.
-
-
-
 """Class Based View """
-
 # 看了下flask，是用 if else去判断是get 还是post,然后分开处理
-
 class CourseList(APIView):
     def get(self,request):
         queryset = Course.objects.all()
@@ -36,6 +55,7 @@ class CourseList(APIView):
 
 
 class CourseDetail(APIView):
+    #permission_classes = (IsAuthenticated, IsOwnerReadOnly)
     @staticmethod
     def get_object(pk):
         try:
@@ -90,6 +110,8 @@ class CourseDetail(APIView):
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    # 权限的控制，这里添加了个自己的自定义IsOwnerReadOnly
+    permission_classes = (IsAuthenticated, IsOwnerReadOnly)
 
     # only need to overide this method as we definr our own rule for create logic
     def perform_create(self, serializer):
